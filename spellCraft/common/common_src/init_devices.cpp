@@ -1,0 +1,75 @@
+#include "init_devices.hpp"
+#include "common_util.hpp"
+
+void get_platforms(cl_uint& num_platforms, cl_platform_id*& platforms){
+    clGetPlatformIDs (1,NULL,&num_platforms);
+    platforms = (cl_platform_id*) malloc(sizeof(cl_platform_id) * num_platforms);
+    clGetPlatformIDs (num_platforms, platforms, NULL);
+}
+
+
+
+void get_devices(const cl_uint num_platforms, const cl_platform_id* platforms,
+vector<cl_device_id>& all_CPUs, vector<cl_device_id>&all_GPUs, vector<cl_device_id>&all_ACUs){
+
+    cl_device_type all_device_types[] = {CL_DEVICE_TYPE_CPU,CL_DEVICE_TYPE_GPU,CL_DEVICE_TYPE_ACCELERATOR};
+    vector<cl_device_id>* all_device_result [] = {&all_CPUs, &all_GPUs, &all_ACUs};
+
+    for (int device_type_id = 0; device_type_id < 3; ++device_type_id){
+
+        cl_device_type cur_device_type = all_device_types[device_type_id];
+        vector<cl_device_id>& cur_device_result = *all_device_result[device_type_id];
+
+        vector<vector<cl_device_id>> platforms_device_vec_vec;
+        vector<cl_uint> platforms_device_num_vec;
+
+        for (int cur_platform_id = 0; cur_platform_id < num_platforms; ++cur_platform_id){
+            vector<cl_device_id> platform_device_vec;
+            cl_uint platform_device_num;
+            clGetDeviceIDs(platforms[cur_platform_id],cur_device_type,1,NULL,&platform_device_num);
+            cl_device_id platform_devices [platform_device_num];
+            clGetDeviceIDs(platforms[cur_platform_id],cur_device_type,platform_device_num,platform_devices,NULL);
+            for (int cur_device_id = 0; cur_device_id < platform_device_num;++cur_device_id){
+                platform_device_vec.push_back(platform_devices[cur_device_id]);
+            }
+            platforms_device_vec_vec.push_back(platform_device_vec);
+            platforms_device_num_vec.push_back(platform_device_num);
+
+        }
+
+        //if a previous platform already has the device of the same name, do not add that device
+        for (int cur_platform_id = 0; cur_platform_id < num_platforms; ++cur_platform_id){
+            for (int cur_device_id = 0; cur_device_id < platforms_device_num_vec[cur_platform_id]; ++cur_device_id){
+                bool previously_found = false;
+                for (int check_platform_id = cur_platform_id-1; check_platform_id < cur_platform_id; ++check_platform_id){
+                    if (check_platform_id < 0) continue;
+                    string cur_device_name = commonUtil::get_device_name(platforms_device_vec_vec[cur_platform_id][cur_device_id]);
+                    for (int check_device_id = 0; check_device_id <platforms_device_num_vec[check_platform_id];++check_device_id){
+                        string check_device_name = commonUtil::get_device_name(platforms_device_vec_vec[check_platform_id][check_device_id]);
+                        if (cur_device_name == check_device_name) previously_found = true;
+                    } 
+                }
+                if (previously_found == false){
+                    cur_device_result.push_back(platforms_device_vec_vec[cur_platform_id][cur_device_id]);
+                }
+            }
+        }
+    }
+}
+
+void print_devices (const vector<cl_device_id>&all_CPUs, const vector<cl_device_id>&all_GPUs, const vector<cl_device_id>&all_ACUs){
+
+    std::cout<<"function get devices"<<std::endl;
+    std::cout<<"cpu list: "<<std::endl;
+    for (cl_device_id cpu : all_CPUs){
+        std::cout<<commonUtil::get_device_name(cpu)<<std::endl;
+    }
+    std::cout<<"gpu list: "<<std::endl;
+    for (cl_device_id gpu : all_GPUs){
+        std::cout<<commonUtil::get_device_name(gpu)<<std::endl;
+    }
+    std::cout<<"acu list: "<<std::endl;
+    for (cl_device_id acu : all_ACUs){
+        std::cout<<commonUtil::get_device_name(acu)<<std::endl;
+    }
+}

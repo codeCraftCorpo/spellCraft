@@ -1,0 +1,3 @@
+MinGW 19.0
+OpenCL 3.0
+SDL 2.0

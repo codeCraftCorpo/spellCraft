@@ -1,0 +1,7 @@
+spellCraft
+
+a c++ library using SYCL and SDL
+for AI, physics sim, apps and games.
+the goal is to use gpus for parallel computation, and be cross platform on desktop. 
+it is primarily a learning project for me to understand more specifically the computations done for AI and physics sims.
+
