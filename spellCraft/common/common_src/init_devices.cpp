@@ -18,13 +18,10 @@ void print_platforms(const cl_uint num_platforms, const cl_platform_id* platform
 
 
 void get_devices(const cl_uint num_platforms, const cl_platform_id* platforms,
-std::vector<cl_device_id>& all_CPUs, std::vector<cl_device_id>&all_GPUs, std::vector<cl_d:wa
-evice_id>&all_ACUs
-std::vector<cl_platform_id>& CPU_used_platforms,std::vector<cl_platform_id>& GPU_used_platforms, std::vect ){
+std::vector<cl_device_id>& all_CPUs, std::vector<cl_device_id>&all_GPUs, std::vector<cl_device_id>&all_ACUs){
 
     cl_device_type all_device_types[] = {CL_DEVICE_TYPE_CPU,CL_DEVICE_TYPE_GPU,CL_DEVICE_TYPE_ACCELERATOR};
     std::vector<cl_device_id>* all_device_result [] = {&all_CPUs, &all_GPUs, &all_ACUs};
-    std::vector<cl_platform_id>* all_platform_result [] = {&CPU_used_platforms,&GPU_used_platforms,&ACU_used_platforms};
 
     for (int device_type_id = 0; device_type_id < 3; ++device_type_id){
 
@@ -63,11 +60,9 @@ std::vector<cl_platform_id>& CPU_used_platforms,std::vector<cl_platform_id>& GPU
                 }
                 if (previously_found == false){
                     cur_device_result.push_back(platforms_device_vec_vec[cur_platform_id][cur_device_id]);
-                    cur_platform_result.push_back(platforms[cur_platform_id]);
                 }
             }
         }
-
     }
 }
 
