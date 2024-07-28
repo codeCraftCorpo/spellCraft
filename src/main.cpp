@@ -1,4 +1,4 @@
-#include <CL/cl.h>
+#include <CL/cl.hpp>
 #include <SDL2/SDL.h>
 
 #include <init_devices.hpp>

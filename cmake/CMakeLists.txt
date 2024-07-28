@@ -17,28 +17,31 @@ set (SPELLCRAFT_ROOT_DIR ${PROJECT_ROOT_DIR}/spellCraft)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 
-include_directories(${DEPENDENCY_ROOT_DIR}/SDL_setup/x86_64-w64-mingw32/include)
-link_directories(${DEPENDENCY_ROOT_DIR}/SDL_setup/x86_64-w64-mingw32/lib)
-
-include_directories(${DEPENDENCY_ROOT_DIR}/openCL_setup/OpenCL/common/inc)
-link_directories(${DEPENDENCY_ROOT_DIR}/openCL_setup/OpenCL/common/lib/x64)
-
-set(LIBS
-  mingw32
-  SDL2main
-  SDL2
-  OpenCL
-  oclUtils64D
-  oclUtils64
-)
+add_definitions(-DCL_HPP_TARGET_OPENCL_VERSION=300)
 
 set (HEADERS
+  ${DEPENDENCY_ROOT_DIR}/SDL_setup/x86_64-w64-mingw32/include
+  ${DEPENDENCY_ROOT_DIR}/openCL_setup/inc  
+
   ${SPELLCRAFT_ROOT_DIR}/common/common_inc
   ${SPELLCRAFT_ROOT_DIR}/ML/ML_inc
   ${SPELLCRAFT_ROOT_DIR}/SIM/SIM_inc
   ${SPELLCRAFT_ROOT_DIR}/UI/UI_inc
   )
 include_directories(${HEADERS})
+
+
+link_directories(${DEPENDENCY_ROOT_DIR}/SDL_setup/x86_64-w64-mingw32/lib)
+link_directories(${DEPENDENCY_ROOT_DIR}/openCL_setup/nvidia/lib/x64)
+
+set(LIBS
+  mingw32
+  SDL2main
+  SDL2
+  OpenCL
+  #oclUtils64D
+  #oclUtils64
+)
 
 
 file(GLOB_RECURSE SPELLCRAFT_COMMON_SRC ${SPELLCRAFT_ROOT_DIR}/common/common_src/*.cpp)
@@ -66,5 +69,5 @@ add_custom_command(TARGET main POST_BUILD
 # (in cmake folder)
 #mkdir build
 #cd build
-#cmake -G Ninja
+#cmake -G Ninja ..
 #ninja

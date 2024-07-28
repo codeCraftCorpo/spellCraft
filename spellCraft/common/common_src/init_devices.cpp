@@ -30,6 +30,7 @@ initCommon::initCommon(){
     init_all_platforms();
     init_used_platform_and_devices();
     init_contexts();
+    sort_contexts_by_memory();
 }
 
 
@@ -109,12 +110,12 @@ void initCommon::init_contexts(){
 void initCommon::print_all_platform_and_devices () const{
     std::cout<<"printing platforms and devices by device type"<<std::endl;
     std::vector<std::string> type_names = {"CPU: ", "GPU: ", "ACU: "};    
-    std::vector<platform_devices_struct>* all_platform_devices_struct_vecs [] = {
+    const std::vector<platform_devices_struct>* all_platform_devices_struct_vecs [] = {
     &this->CPU_platform_devices_struct_vec, &this->GPU_platform_devices_struct_vec, &this->ACU_platform_devices_struct_vec};
 
     for (int device_type_id = 0; device_type_id < 3; ++device_type_id){
         std::string cur_type= type_names[device_type_id];
-        std::vector<platform_devices_struct>& cur_platform_devices_struct_vec = *all_platform_devices_struct_vecs[device_type_id];        
+        std::vector<platform_devices_struct> cur_platform_devices_struct_vec = *all_platform_devices_struct_vecs[device_type_id];        
         
         std::cout<<cur_type<<std::endl;
         for (platform_devices_struct cur_platform_devices_struct : cur_platform_devices_struct_vec){
@@ -126,48 +127,41 @@ void initCommon::print_all_platform_and_devices () const{
 void initCommon::print_all_contexts() const{
     std::cout<<"printing contexts and associated devices"<<std::endl;
     std::vector<std::string> type_names = {"CPU: ", "GPU: ", "ACU: "};    
+    const std::vector<cl_context>* all_contexts[] = {
+    &this->CPU_contexts, &this->GPU_contexts, &this->ACU_contexts};
+
+    for (int device_type_id = 0; device_type_id < 3; ++device_type_id){
+        std::cout<<type_names[device_type_id]<<std::endl;
+        std::vector<cl_context> cur_context_vec = *all_contexts[device_type_id];
+        for (int context_id = 0; context_id< cur_context_vec.size(); ++context_id){
+            std::cout<<"context "<<context_id<<std::endl;
+            std::cout<<"total memory (mb): "<<commonUtil::get_context_memory(cur_context_vec[context_id])/(1024*1024)<<std::endl;
+            std::cout<<"total compute units: "<<commonUtil::get_context_compute_units(cur_context_vec[context_id])<<std::endl;
+            std::cout<<"devices: "<<std::endl;
+            cl_device_id cur_devices[100];
+            size_t num_devices_bytes;
+            clGetContextInfo(cur_context_vec[context_id],CL_CONTEXT_DEVICES,sizeof(cur_devices), cur_devices, &num_devices_bytes);
+            for (size_t i = 0; i < num_devices_bytes/sizeof(cl_device_id); ++i){
+                std::cout<<commonUtil::get_device_name(cur_devices[i])<<std::endl;
+            }
+        }
+    }
+}
+
+void initCommon::sort_contexts_by_memory(){
     std::vector<cl_context>* all_contexts[] = {
     &this->CPU_contexts, &this->GPU_contexts, &this->ACU_contexts};
 
     for (int device_type_id = 0; device_type_id < 3; ++device_type_id){
-        std::string cur_type= type_names[device_type_id];
-        std::vector<cl_context>& cur_type_context_vec = *all_contexts[device_type_id];
-
-    }
-
-    std::cout<<"CPU: "<<std::endl;
-    for (int context_id = 0; context_id< this->CPU_contexts.size(); ++context_id){
-        cl_context cur_context = this->CPU_contexts[context_id];
-        std::cout<<"context "<<context_id<<"\n"<<"devices: "<<std::endl;
-        cl_device_id cur_devices[100];
-        size_t num_devices;
-        clGetContextInfo(cur_context, CL_CONTEXT_DEVICES,sizeof(cur_devices), cur_devices, &num_devices);
-        for (size_t i = 0; i < num_devices/sizeof(cl_device_id); ++i){
-            std::cout<<commonUtil::get_device_name(cur_devices[i])<<std::endl;
-        }
-    }
-
-    std::cout<<"GPU: "<<std::endl;
-    for (int context_id = 0; context_id< this->GPU_contexts.size(); ++context_id){
-        cl_context cur_context = this->GPU_contexts[context_id];
-        std::cout<<"context "<<context_id<<"\n"<<"devices: "<<std::endl;
-        cl_device_id cur_devices[100];
-        size_t num_devices;
-        clGetContextInfo(cur_context, CL_CONTEXT_DEVICES,sizeof(cur_devices), cur_devices, &num_devices);
-        for (size_t i = 0; i < num_devices/sizeof(cl_device_id); ++i){
-            std::cout<<commonUtil::get_device_name(cur_devices[i])<<std::endl;
-        }
-    }
-
-    std::cout<<"ACU: "<<std::endl;
-    for (int context_id = 0; context_id< this->ACU_contexts.size(); ++context_id){
-        cl_context cur_context = this->ACU_contexts[context_id];
-        std::cout<<"context "<<context_id<<"\n"<<"devices: "<<std::endl;
-        cl_device_id cur_devices[100];
-        size_t num_devices;
-        clGetContextInfo(cur_context, CL_CONTEXT_DEVICES,sizeof(cur_devices), cur_devices, &num_devices);
-        for (size_t i = 0; i < num_devices/sizeof(cl_device_id); ++i){
-            std::cout<<commonUtil::get_device_name(cur_devices[i])<<std::endl;
+        std::vector<cl_context>& cur_context_vec = *all_contexts[device_type_id];
+        for (int cur_context_id = 0; cur_context_id< cur_context_vec.size(); ++cur_context_id){
+            for (int check_context_id = cur_context_id +1; check_context_id< cur_context_vec.size(); ++check_context_id){
+                cl_ulong cur_context_memory = commonUtil::get_context_memory(cur_context_vec[cur_context_id]);
+                cl_ulong check_context_memory = commonUtil::get_context_memory(cur_context_vec[check_context_id]);
+                if (check_context_memory > cur_context_memory){
+                    std::swap(cur_context_vec[cur_context_id],cur_context_vec[check_context_id]);
+                }
+            }
         }
     }
 }

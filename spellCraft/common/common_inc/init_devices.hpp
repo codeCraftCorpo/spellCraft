@@ -1,11 +1,12 @@
 #ifndef INIT_DEVICES_HPP
 #define INIT_DEVICES_HPP
 
-#include <CL/cl.h>
+#include <CL/cl.hpp>
 #include <SDL2/SDL.h>
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 #include "common_util.hpp"
 
@@ -22,7 +23,8 @@ struct platform_devices_struct{
 
 
 //device data hierachy
-//device type > platform = context (= in this implementation) > devices
+//device type > platform = context > devices
+//currently does not use opencl for cpus
 class initCommon{
 public:
     //call all init functions to initialize member variables
@@ -41,6 +43,10 @@ public:
     void print_all_platform_and_devices () const;
 
     void print_all_contexts() const;
+
+    //sort the contexts from most memory to least memory
+    //this is a temporary function just for developement, since i want to use the gpu not integrated cpu. will code better tests to assign tasks later
+    void sort_contexts_by_memory();
 
 private:
     cl_uint num_all_platforms;
